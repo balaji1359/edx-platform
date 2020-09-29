@@ -90,7 +90,7 @@ class LoginTest(SiteMixin, CacheIsolationTestCase):
         {
             'next_url': None,
             'course_id': None,
-            'expected_redirect': '/dashboard',
+            'expected_redirect': settings.LMS_ROOT_URL + '/dashboard',
         },
         # A relative path is an acceptable redirect.
         {
@@ -108,7 +108,7 @@ class LoginTest(SiteMixin, CacheIsolationTestCase):
         {
             'next_url': 'https://evil.sketchysite',
             'course_id': None,
-            'expected_redirect': '/dashboard',
+            'expected_redirect': settings.LMS_ROOT_URL + '/dashboard',
         },
         # An absolute URL to a whitelisted domain is acceptable.
         {
@@ -121,7 +121,7 @@ class LoginTest(SiteMixin, CacheIsolationTestCase):
             'next_url': None,
             'course_id': 'coursekey',
             'expected_redirect': (
-                '/account/finish_auth?course_id=coursekey&next=%2Fdashboard'
+                settings.LMS_ROOT_URL + '/account/finish_auth?course_id=coursekey&next=%2Fdashboard'
             ),
         },
         # If valid course_id AND next_url are provided, redirect to finish_auth with
@@ -130,7 +130,7 @@ class LoginTest(SiteMixin, CacheIsolationTestCase):
             'next_url': 'freshpage',
             'course_id': 'coursekey',
             'expected_redirect': (
-                '/account/finish_auth?course_id=coursekey&next=freshpage'
+                settings.LMS_ROOT_URL + '/account/finish_auth?course_id=coursekey&next=freshpage'
             )
         },
         # If course_id is provided with invalid next_url, redirect to finish_auth with
@@ -139,7 +139,7 @@ class LoginTest(SiteMixin, CacheIsolationTestCase):
             'next_url': 'http://scam.scam',
             'course_id': 'coursekey',
             'expected_redirect': (
-                '/account/finish_auth?course_id=coursekey&next=%2Fdashboard'
+                settings.LMS_ROOT_URL + '/account/finish_auth?course_id=coursekey&next=%2Fdashboard'
             ),
         },
     )
