@@ -10,10 +10,11 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
-from enterprise.models import EnterpriseCourseEnrollment, EnterpriseCustomer, EnterpriseCustomerUser
-from integrated_channels.integrated_channel.tasks import transmit_single_learner_data
+from slumber.exceptions import HttpClientError, HttpServerError
 
 from email_marketing.tasks import update_user
+from enterprise.models import EnterpriseCourseEnrollment, EnterpriseCustomer, EnterpriseCustomerUser
+from integrated_channels.integrated_channel.tasks import transmit_single_learner_data
 from openedx.core.djangoapps.commerce.utils import ecommerce_api_client
 from openedx.core.djangoapps.signals.signals import COURSE_GRADE_NOW_PASSED
 from openedx.features.enterprise_support.api import enterprise_enabled
@@ -105,8 +106,15 @@ def refund_order_voucher(sender, course_enrollment=None, skip_refund=False, **kw
     client = ecommerce_api_client(service_user)
     order_number = course_enrollment.get_order_attribute_value('order_number')
     if order_number:
-        client.enterprise.coupons.create_refunded_voucher.post(
-            {
-                "order": order_number
-            }
-        )
+        try:
+            client.enterprise.coupons.create_refunded_voucher.post({"order": order_number})
+        except HttpClientError:
+            log.info(
+                u"Encountered HttpClientError while requesting to create refund voucher form the ecommerce. "
+                u"Order={number}".format(number=order_number)
+            )
+        except HttpServerError:
+            log.exception(
+                u"Encountered HttpServerError while requesting to create refund voucher form the ecommerce. "
+                u"Order={number}".format(number=order_number)
+            )
